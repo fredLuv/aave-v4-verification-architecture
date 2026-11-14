@@ -10,8 +10,8 @@
   <meta property="og:description" content="Interactive Hub-and-Spoke code map with line-verified links to aave/aave-v4 and a 5-stratum Assume-Guarantee verification pipeline." />
   <meta property="og:url" content="https://fredluv.github.io/aave-v4-verification-architecture/" />
   <meta property="og:image" content="https://fredluv.github.io/aave-v4-verification-architecture/preview.png" />
-  <meta property="og:image:width" content="1024" />
-  <meta property="og:image:height" content="752" />
+  <meta property="og:image:width" content="1280" />
+  <meta property="og:image:height" content="920" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Aave V4 Architecture — Interactive Explorer &amp; Code Map" />
   <meta name="twitter:description" content="Clickable Hub-and-Spoke topology, line-verified Solidity links, and Context-Sliced Assume-Guarantee verification." />
@@ -77,7 +77,8 @@
     .node-card.is-dimmed {
       opacity: 0.45;
     }
-    .tab-btn.is-active {
+    .tab-btn.is-active,
+    .flow-btn.is-active {
       background-color: var(--primary);
       color: var(--primary-foreground);
       border-color: var(--primary);
@@ -87,11 +88,11 @@
     }
   </style>
 </head>
-<body class="bg-[var(--background)] text-[var(--foreground)] antialiased m-0 p-6">
-  <div class="max-w-7xl mx-auto space-y-6">
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased m-0 p-5">
+  <div class="max-w-7xl mx-auto space-y-5">
 
     <!-- Header -->
-    <header class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <header class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       <div class="space-y-1.5">
         <h1 class="text-2xl font-bold tracking-tight">Aave V4 Architecture &amp; Interactive Code Map</h1>
         <p class="text-sm text-[var(--muted-foreground)] max-w-2xl">
@@ -119,23 +120,25 @@
 
       <!-- Left: Clickable Layered Architecture Diagram -->
       <div class="xl:col-span-7 bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-4">
-        <div class="flex items-center justify-between gap-3 border-b border-[var(--border)] pb-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-[var(--border)] pb-3">
           <div>
             <h2 class="text-base font-semibold">Interactive Hub-and-Spoke Topology</h2>
-            <p class="text-xs text-[var(--muted-foreground)]">Select a component to trace edges, view invariants, and open exact Solidity source lines.</p>
+            <p class="text-xs text-[var(--muted-foreground)]">Trace call paths by mechanism or select any contract/library node to inspect verified source boundaries.</p>
           </div>
-          <button id="resetFilterBtn" type="button"
-                  class="text-xs px-2.5 py-1.5 rounded-md border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)]">
-            Show All Edges
-          </button>
+          <div class="flex flex-wrap items-center gap-1.5 text-xs shrink-0">
+            <button type="button" data-flow="liquidity" class="flow-btn px-2.5 py-1.5 rounded-md border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)]">Liquidity</button>
+            <button type="button" data-flow="risk" class="flow-btn px-2.5 py-1.5 rounded-md border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)]">Liquidation &amp; Math</button>
+            <button type="button" data-flow="gov" class="flow-btn px-2.5 py-1.5 rounded-md border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)]">Governance</button>
+            <button id="resetFilterBtn" type="button" data-flow="all" class="flow-btn px-2.5 py-1.5 rounded-md border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)]">All Edges</button>
+          </div>
         </div>
 
         <!-- Layered Clickable Map with Dynamic SVG Connectors -->
-        <div id="diagramStage" class="relative space-y-5 p-3 rounded-lg bg-[var(--content)] border border-[var(--border)] overflow-hidden">
-          <svg id="edgeOverlay" class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></svg>
+        <div id="diagramStage" class="relative space-y-4 p-4 rounded-lg bg-[var(--content)] border border-[var(--border)] overflow-hidden">
+          <svg id="edgeOverlay" class="absolute inset-0 w-full h-full pointer-events-none z-10" aria-hidden="true"></svg>
 
           <!-- Layer 1: Users, Gateways & Governance -->
-          <div class="relative z-10 space-y-2">
+          <div class="relative z-20 space-y-1.5">
             <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
               1. Access, Governance &amp; Position Gateways
             </div>
@@ -165,7 +168,7 @@
           </div>
 
           <!-- Layer 2: Upgradeable / Modular Spokes -->
-          <div class="relative z-10 space-y-2">
+          <div class="relative z-20 space-y-1.5">
             <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
               2. Modular Risk Markets (Spokes &amp; Liquidation Engine)
             </div>
@@ -202,12 +205,12 @@
           </div>
 
           <!-- Boundary Strip -->
-          <div class="relative z-10 text-center py-1.5 px-3 rounded-md border border-dashed border-[var(--border)] bg-[var(--background)] text-xs text-[var(--muted-foreground)] font-mono">
-            Trust &amp; Solvency Seam: <a href="https://github.com/aave/aave-v4/blob/main/src/hub/interfaces/IHubBase.sol#L7" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">IHubBase.sol</a> (add / remove / draw / restore / refreshPremium / reportDeficit)
+          <div class="relative z-20 text-center py-1.5 px-3 rounded-md border border-dashed border-[var(--border)] bg-[var(--background)] text-[11px] text-[var(--muted-foreground)] font-mono">
+            Seam: <a href="https://github.com/aave/aave-v4/blob/main/src/hub/interfaces/IHubBase.sol#L7" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">IHubBase.sol</a> (add / remove / draw / restore / refreshPremium / reportDeficit)
           </div>
 
           <!-- Layer 3: Immutable Hub & Accounting Libraries -->
-          <div class="relative z-10 space-y-2">
+          <div class="relative z-20 space-y-1.5 pb-4">
             <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
               3. Unified Liquidity Core (Hub &amp; Math Libraries)
             </div>
@@ -235,12 +238,22 @@
               </div>
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="irs">
                 <div class="flex flex-wrap items-center justify-between gap-1.5">
-                  <span class="text-xs font-semibold break-all">InterestRateStrategy</span>
+                  <span class="text-[11px] font-semibold tracking-tight">InterestRateStrategy</span>
                   <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--chart-6)">Module</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Kinked utilization curve setting base drawn rate.</p>
               </div>
             </div>
+          </div>
+
+          <!-- Flow Legend -->
+          <div class="relative z-20 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[var(--border)] text-xs text-[var(--muted-foreground)]">
+            <div class="flex flex-wrap items-center gap-4">
+              <span class="inline-flex items-center gap-1.5"><span class="inline-block w-4 h-0.5 rounded" style="background: var(--chart-1)"></span>Liquidity &amp; Spoke Calls</span>
+              <span class="inline-flex items-center gap-1.5"><span class="inline-block w-4 h-0.5 rounded" style="background: var(--chart-5)"></span>Math &amp; Risk Libraries</span>
+              <span class="inline-flex items-center gap-1.5"><span class="inline-block w-4 border-t-2 border-dashed" style="border-color: var(--chart-3)"></span>Governance &amp; Caps</span>
+            </div>
+            <span id="edgeStatusNote" class="font-mono"></span>
           </div>
         </div>
       </div>
@@ -635,17 +648,32 @@
     };
 
     const EDGES = [
-      ["access", "hub"], ["access", "spoke"], ["access", "config"],
-      ["config", "hub"], ["config", "spoke"], ["config", "babylon"], ["config", "tokenization"],
-      ["gateways", "spoke"],
-      ["spoke", "liquidation"], ["spoke", "hub"], ["babylon", "hub"], ["tokenization", "hub"],
-      ["hub", "premium"], ["hub", "shares"], ["hub", "irs"], ["premium", "shares"]
+      { from: "gateways", to: "spoke", type: "flow", stage: "liquidity", route: "v-cross" },
+      { from: "spoke", to: "hub", type: "flow", stage: "liquidity", route: "v-straight" },
+      { from: "babylon", to: "hub", type: "flow", stage: "liquidity", route: "v-cross" },
+      { from: "tokenization", to: "hub", type: "flow", stage: "liquidity", route: "v-cross" },
+
+      { from: "spoke", to: "liquidation", type: "math", stage: "risk", route: "h-adj" },
+      { from: "liquidation", to: "hub", type: "math", stage: "risk", route: "v-cross" },
+      { from: "hub", to: "premium", type: "math", stage: "risk", route: "h-adj" },
+      { from: "hub", to: "shares", type: "math", stage: "risk", route: "bot-arch-1" },
+      { from: "hub", to: "irs", type: "math", stage: "risk", route: "bot-arch-2" },
+      { from: "premium", to: "shares", type: "math", stage: "risk", route: "h-adj" },
+
+      { from: "access", to: "config", type: "gov", stage: "gov", route: "h-adj" },
+      { from: "access", to: "spoke", type: "gov", stage: "gov", route: "v-straight" },
+      { from: "access", to: "hub", type: "gov", stage: "gov", route: "outer-left" },
+      { from: "config", to: "spoke", type: "gov", stage: "gov", route: "v-cross" },
+      { from: "config", to: "babylon", type: "gov", stage: "gov", route: "v-cross" },
+      { from: "config", to: "tokenization", type: "gov", stage: "gov", route: "v-cross" },
+      { from: "config", to: "hub", type: "gov", stage: "gov", route: "gutter-0" }
     ];
 
     let selectedId = "hub";
+    let activeFlow = null;
 
     function renderInspector(nodeId) {
-      const data = NODES[nodeId];
+      const data = NODES[nodeId] || NODES.hub;
       const panel = document.getElementById("inspectorPanel");
       panel.innerHTML = `
         <div class="flex items-start justify-between gap-2 border-b border-[var(--border)] pb-3">
@@ -678,57 +706,169 @@
       `;
     }
 
-    function drawEdges(highlightId) {
+    function boxMetrics(el, rect) {
+      const r = el.getBoundingClientRect();
+      return {
+        left: r.left - rect.left,
+        right: r.right - rect.left,
+        top: r.top - rect.top,
+        bottom: r.bottom - rect.top,
+        cx: r.left - rect.left + r.width / 2,
+        cy: r.top - rect.top + r.height / 2
+      };
+    }
+
+    function routeEdgePath(edge, bA, bB, idx) {
+      const pad = 2;
+      const sameRow = Math.abs(bA.cy - bB.cy) < 28;
+      if (sameRow && edge.route === "h-adj") {
+        const goRight = bA.cx < bB.cx;
+        const x1 = goRight ? bA.right + pad : bA.left - pad;
+        const x2 = goRight ? bB.left - pad : bB.right + pad;
+        return `M ${x1} ${bA.cy} L ${x2} ${bB.cy}`;
+      }
+      if (sameRow && (edge.route === "bot-arch-1" || edge.route === "bot-arch-2")) {
+        const drop = edge.route === "bot-arch-2" ? 18 : 11;
+        const archY = Math.max(bA.bottom, bB.bottom) + drop;
+        const off = edge.route === "bot-arch-2" ? -12 : 12;
+        return `M ${bA.cx + off} ${bA.bottom + pad} C ${bA.cx + off} ${archY}, ${bB.cx} ${archY}, ${bB.cx} ${bB.bottom + pad}`;
+      }
+      if (edge.route === "outer-left") {
+        const spokeEl = document.querySelector(`[data-node="spoke"]`);
+        const stageRect = document.getElementById("diagramStage").getBoundingClientRect();
+        const spokeLeft = spokeEl ? boxMetrics(spokeEl, stageRect).left : Math.min(bA.left, bB.left);
+        const laneX = Math.max(5, spokeLeft - 9);
+        const y1 = bA.bottom + pad;
+        const y2 = bB.top - pad;
+        const midTop = spokeEl ? boxMetrics(spokeEl, stageRect).top - 4 : y1 + 20;
+        const midBot = spokeEl ? boxMetrics(spokeEl, stageRect).bottom + 4 : y2 - 20;
+        return `M ${bA.left + 12} ${y1} Q ${laneX} ${y1}, ${laneX} ${midTop} L ${laneX} ${midBot} Q ${laneX} ${y2}, ${bB.left + 12} ${y2}`;
+      }
+      if (edge.route === "gutter-0") {
+        const refLeft = document.querySelector(`[data-node="spoke"]`);
+        const refRight = document.querySelector(`[data-node="liquidation"]`);
+        if (refLeft && refRight) {
+          const stageRect = document.getElementById("diagramStage").getBoundingClientRect();
+          const mL = boxMetrics(refLeft, stageRect);
+          const mR = boxMetrics(refRight, stageRect);
+          if (Math.abs(mL.cy - mR.cy) < 28) {
+            const gx = (mL.right + mR.left) / 2;
+            const y1 = bA.bottom + pad;
+            const y2 = bB.top - pad;
+            const gTop = Math.min(mL.top, mR.top) - 6;
+            const gBot = Math.max(mL.bottom, mR.bottom) + 6;
+            return `M ${bA.cx - 8} ${y1} Q ${gx} ${y1}, ${gx} ${gTop} L ${gx} ${gBot} Q ${gx} ${y2}, ${bB.cx + 14} ${y2}`;
+          }
+        }
+      }
+      const down = bA.cy < bB.cy;
+      const y1 = down ? bA.bottom + pad : bA.top - pad;
+      const y2 = down ? bB.top - pad : bB.bottom + pad;
+      const nudge = ((idx % 3) - 1) * 7;
+      const x1 = bA.cx + nudge;
+      const x2 = bB.cx - nudge;
+      const midY = (y1 + y2) / 2;
+      return `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
+    }
+
+    function colorForEdge(type) {
+      if (type === "math") return "var(--chart-5)";
+      if (type === "gov") return "var(--chart-3)";
+      return "var(--chart-1)";
+    }
+
+    function drawEdges() {
       const stage = document.getElementById("diagramStage");
       const svg = document.getElementById("edgeOverlay");
       const rect = stage.getBoundingClientRect();
       svg.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
-      svg.innerHTML = "";
 
-      const connectedSet = new Set(highlightId ? [highlightId, ...(NODES[highlightId]?.connections || [])] : []);
+      svg.innerHTML = `
+        <defs>
+          <marker id="arr-flow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="var(--chart-1)" />
+          </marker>
+          <marker id="arr-math" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="var(--chart-5)" />
+          </marker>
+          <marker id="arr-gov" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="var(--chart-3)" />
+          </marker>
+          <marker id="arr-dim" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8.5 5 L 0 8.5 z" fill="var(--border)" />
+          </marker>
+        </defs>
+      `;
+
+      const activeSet = new Set();
+      let activeCount = 0;
+
+      const edgeStates = EDGES.map(edge => {
+        let active = false;
+        if (activeFlow === "all") active = true;
+        else if (activeFlow) active = edge.stage === activeFlow;
+        else if (selectedId) active = edge.from === selectedId || edge.to === selectedId;
+        if (active) {
+          activeCount++;
+          activeSet.add(edge.from);
+          activeSet.add(edge.to);
+        }
+        return { edge, active };
+      });
+
+      document.querySelectorAll(".flow-btn").forEach(b => {
+        b.classList.toggle("is-active", b.dataset.flow === activeFlow);
+      });
+
       document.querySelectorAll(".node-card").forEach(card => {
         const id = card.dataset.node;
-        card.classList.toggle("is-selected", id === highlightId);
-        card.classList.toggle("is-dimmed", Boolean(highlightId) && !connectedSet.has(id));
+        const isSel = !activeFlow && id === selectedId;
+        const dim = activeFlow === "all" ? false : (activeSet.size > 0 && !activeSet.has(id));
+        card.classList.toggle("is-selected", isSel);
+        card.classList.toggle("is-dimmed", dim);
       });
 
-      EDGES.forEach(([a, b]) => {
-        const elA = document.querySelector(`[data-node="${a}"]`);
-        const elB = document.querySelector(`[data-node="${b}"]`);
+      const ordered = [...edgeStates.filter(e => !e.active), ...edgeStates.filter(e => e.active)];
+      ordered.forEach(({ edge, active }, idx) => {
+        const elA = document.querySelector(`[data-node="${edge.from}"]`);
+        const elB = document.querySelector(`[data-node="${edge.to}"]`);
         if (!elA || !elB) return;
-        const rA = elA.getBoundingClientRect();
-        const rB = elB.getBoundingClientRect();
-        const x1 = rA.left - rect.left + rA.width / 2;
-        const y1 = rA.top - rect.top + rA.height / 2;
-        const x2 = rB.left - rect.left + rB.width / 2;
-        const y2 = rB.top - rect.top + rB.height / 2;
-        const isActive = !highlightId || a === highlightId || b === highlightId;
+        const bA = boxMetrics(elA, rect);
+        const bB = boxMetrics(elB, rect);
         const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        const midY = (y1 + y2) / 2;
-        path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`);
+        path.setAttribute("d", routeEdgePath(edge, bA, bB, idx));
         path.setAttribute("fill", "none");
         path.setAttribute("class", "edge-line");
-        path.setAttribute("stroke", isActive && highlightId ? "var(--primary)" : "var(--border)");
-        path.setAttribute("stroke-width", isActive && highlightId ? "2" : "1.2");
-        path.setAttribute("opacity", isActive ? "0.9" : "0.2");
+        if (edge.type === "gov") path.setAttribute("stroke-dasharray", "4 3");
+        path.setAttribute("stroke", active ? colorForEdge(edge.type) : "var(--border)");
+        path.setAttribute("stroke-width", active ? "2" : "1");
+        path.setAttribute("opacity", active ? "0.92" : "0.14");
+        path.setAttribute("marker-end", active ? `url(#arr-${edge.type})` : "url(#arr-dim)");
         svg.appendChild(path);
       });
+
+      const statusEl = document.getElementById("edgeStatusNote");
+      if (statusEl) {
+        statusEl.textContent = activeFlow
+          ? `${activeFlow.toUpperCase()} (${activeCount} edges)`
+          : `${NODES[selectedId]?.title.split(" ")[0] || "Node"} (${activeCount} edges)`;
+      }
     }
 
     document.querySelectorAll(".node-card").forEach(card => {
       card.addEventListener("click", () => {
+        activeFlow = null;
         selectedId = card.dataset.node;
         renderInspector(selectedId);
-        drawEdges(selectedId);
+        drawEdges();
       });
     });
 
-    document.getElementById("resetFilterBtn").addEventListener("click", () => {
-      selectedId = null;
-      document.querySelectorAll(".node-card").forEach(c => {
-        c.classList.remove("is-selected", "is-dimmed");
+    document.querySelectorAll(".flow-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeFlow = btn.dataset.flow;
+        drawEdges();
       });
-      drawEdges(null);
     });
 
     // Tabs
@@ -786,9 +926,9 @@
     renderInspector(selectedId);
     updateRp();
     updateLb();
-    requestAnimationFrame(() => drawEdges(selectedId));
-    window.addEventListener("resize", () => drawEdges(selectedId));
-    window.addEventListener("themechange", () => drawEdges(selectedId));
+    requestAnimationFrame(() => drawEdges());
+    window.addEventListener("resize", drawEdges);
+    window.addEventListener("themechange", drawEdges);
   </script>
 </body>
 </html>
