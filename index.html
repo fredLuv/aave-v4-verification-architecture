@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aave V4 Architecture — Interactive Explorer &amp; Code Map</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --background: #f8fafc;
+      --content: #f1f5f9;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --foreground: #0f172a;
+      --muted-foreground: #475569;
+      --code-foreground: #0f172a;
+      --primary: #2563eb;
+      --primary-foreground: #ffffff;
+      --link: #1d4ed8;
+      --success: #16a34a;
+      --warning: #d97706;
+      --error: #dc2626;
+      --chart-1: #2563eb;
+      --chart-2: #7c3aed;
+      --chart-3: #d97706;
+      --chart-4: #0d9488;
+      --chart-5: #db2777;
+      --chart-6: #4f46e5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #0b1120;
+        --content: #111827;
+        --card: #162032;
+        --border: #263248;
+        --foreground: #f1f5f9;
+        --muted-foreground: #94a3b8;
+        --code-foreground: #e2e8f0;
+        --primary: #60a5fa;
+        --primary-foreground: #0b1120;
+        --link: #93c5fd;
+        --success: #4ade80;
+        --warning: #fbbf24;
+        --error: #f87171;
+        --chart-1: #60a5fa;
+        --chart-2: #a78bfa;
+        --chart-3: #fbbf24;
+        --chart-4: #2dd4bf;
+        --chart-5: #f472b6;
+        --chart-6: #818cf8;
+      }
+    }
+    .node-card {
+      cursor: pointer;
+      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+    }
+    .node-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary);
+    }
+    .node-card.is-selected {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 28%, transparent);
+    }
+    .node-card.is-dimmed {
+      opacity: 0.45;
+    }
+    .tab-btn.is-active {
+      background-color: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+    }
+    svg path.edge-line {
+      transition: stroke 0.16s ease, stroke-width 0.16s ease, opacity 0.16s ease;
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased m-0 p-6">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <header class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div class="space-y-1.5">
+        <div class="flex flex-wrap items-center gap-2 text-xs font-medium">
+          <span class="px-2.5 py-0.5 rounded-full border border-[var(--border)] bg-[var(--content)] text-[var(--foreground)]">Protocol Architecture Report</span>
+          <span class="px-2.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--muted-foreground)]">Hub-and-Spoke Design</span>
+          <span class="px-2.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--muted-foreground)]">Line-Verified Source Links</span>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight">Aave V4 Architecture &amp; Interactive Code Map</h1>
+        <p class="text-sm text-[var(--muted-foreground)] max-w-3xl">
+          Click any contract node in the architecture map below to inspect its call boundaries, security invariants, and jump straight to exact function lines in the upstream
+          <a href="https://github.com/aave/aave-v4" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)] hover:opacity-80">aave/aave-v4</a> repository.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2 text-xs shrink-0">
+        <a href="https://github.com/aave/aave-v4#architecture" target="_blank" rel="noopener noreferrer"
+           class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)] font-medium">
+          GitHub README ↗
+        </a>
+        <a href="https://github.com/aave/aave-v4/blob/main/docs/overview.md" target="_blank" rel="noopener noreferrer"
+           class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)] font-medium">
+          docs/overview.md ↗
+        </a>
+        <a href="https://github.com/fredLuv/aave-v4-verification-architecture/blob/main/methodology.md" target="_blank" rel="noopener noreferrer"
+           class="px-3 py-2 rounded-lg border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 font-medium">
+          Verification Methodology ↗
+        </a>
+        <a href="https://github.com/aave/aave-v4/tree/main/audits" target="_blank" rel="noopener noreferrer"
+           class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)] font-medium">
+          Audit &amp; Certora PDFs ↗
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Interactive Grid: Clickable Diagram + Inspector -->
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+
+      <!-- Left: Clickable Layered Architecture Diagram -->
+      <div class="xl:col-span-7 bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-4">
+        <div class="flex items-center justify-between gap-3 border-b border-[var(--border)] pb-3">
+          <div>
+            <h2 class="text-base font-semibold">Interactive Hub-and-Spoke Topology</h2>
+            <p class="text-xs text-[var(--muted-foreground)]">Select a component to trace edges, view invariants, and open exact Solidity source lines.</p>
+          </div>
+          <button id="resetFilterBtn" type="button"
+                  class="text-xs px-2.5 py-1.5 rounded-md border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)]">
+            Show All Edges
+          </button>
+        </div>
+
+        <!-- Layered Clickable Map with Dynamic SVG Connectors -->
+        <div id="diagramStage" class="relative space-y-5 p-3 rounded-lg bg-[var(--content)] border border-[var(--border)] overflow-hidden">
+          <svg id="edgeOverlay" class="absolute inset-0 w-full h-full pointer-events-none" aria-hidden="true"></svg>
+
+          <!-- Layer 1: Users, Gateways & Governance -->
+          <div class="relative z-10 space-y-2">
+            <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+              1. Access, Governance &amp; Position Gateways
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="access">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-semibold">AccessManagerEnumerable</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--content)] text-[var(--muted-foreground)]">Authority</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Role-based permissions across Hub &amp; Spokes.</p>
+              </div>
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="config">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-semibold">AaveV4ConfigEngine</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--content)] text-[var(--muted-foreground)]">Payload</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Governance listings, caps, halts &amp; reserve setups.</p>
+              </div>
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="gateways">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-semibold">Position Managers</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--content)] text-[var(--muted-foreground)]">Entry</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">NativeTokenGateway &amp; SignatureGateway (EIP-712).</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Layer 2: Upgradeable / Modular Spokes -->
+          <div class="relative z-10 space-y-2">
+            <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+              2. Modular Risk Markets (Spokes &amp; Liquidation Engine)
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="spoke">
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-xs font-semibold">Spoke.sol</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-1)">Upgradeable</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Supply, borrow, repay, collateral &amp; dynamic configs.</p>
+              </div>
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="liquidation">
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-xs font-semibold">LiquidationLogic</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-2)">Library</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Target-HF sizing, dust checks &amp; Dutch-auction bonus.</p>
+              </div>
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="babylon">
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-xs font-semibold">BabylonSpoke</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-3)">Specialized</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Single BTC vault collateral + manager liquidations.</p>
+              </div>
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="tokenization">
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-xs font-semibold">TokenizationSpoke</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-4)">ERC-4626</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Tokenized vault shares over Hub liquidity.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Boundary Strip -->
+          <div class="relative z-10 text-center py-1.5 px-3 rounded-md border border-dashed border-[var(--border)] bg-[var(--background)] text-xs text-[var(--muted-foreground)] font-mono">
+            Trust &amp; Solvency Seam: <a href="https://github.com/aave/aave-v4/blob/main/src/hub/interfaces/IHubBase.sol#L7" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">IHubBase.sol</a> (add / remove / draw / restore / refreshPremium / reportDeficit)
+          </div>
+
+          <!-- Layer 3: Immutable Hub & Accounting Libraries -->
+          <div class="relative z-10 space-y-2">
+            <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
+              3. Unified Liquidity Core (Hub &amp; Math Libraries)
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div class="node-card is-selected rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="hub">
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-xs font-semibold">Hub.sol</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--success)">Immutable</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Master ledger, Spoke caps, deficit &amp; reinvestment sweeps.</p>
+              </div>
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="premium">
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-xs font-semibold">Premium.sol</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-5)">Library</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Premium shares &amp; offset accrual separate from principal.</p>
+              </div>
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="shares">
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-xs font-semibold">SharesMath / WadRay</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-5)">Library</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Directional rounding (`Down`/`Up`) and RAY precision.</p>
+              </div>
+              <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="irs">
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-xs font-semibold">InterestRateStrategy</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-6)">Module</span>
+                </div>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Kinked utilization curve setting base drawn rate.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Selected Component Inspector -->
+      <aside id="inspectorPanel" class="xl:col-span-5 bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-4">
+        <!-- Populated dynamically by JS -->
+      </aside>
+
+    </section>
+
+    <!-- Interactive Mechanisms Explorer -->
+    <section class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-[var(--border)] pb-3">
+        <div>
+          <h2 class="text-lg font-semibold">Core Protocol Mechanics (Interactive Walkthroughs)</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Explore the 4 signature design pillars introduced in Aave V4 with direct pointers to their Solidity implementation.</p>
+        </div>
+        <div class="flex flex-wrap gap-2" role="tablist">
+          <button class="tab-btn is-active text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] font-medium" data-tab="risk-premium">Risk Premium</button>
+          <button class="tab-btn text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] font-medium" data-tab="dynamic-config">Dynamic Config</button>
+          <button class="tab-btn text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] font-medium" data-tab="liquidation">Liquidation &amp; Bonus</button>
+          <button class="tab-btn text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] font-medium" data-tab="invariants">4 Hub Invariants</button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Risk Premium -->
+      <div id="tab-risk-premium" class="tab-panel grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div class="lg:col-span-7 space-y-3 text-sm">
+          <h3 class="font-semibold text-base">Dual-Stream Interest &amp; Greedy Collateral Risk Sorting</h3>
+          <p class="text-[var(--muted-foreground)]">
+            Every borrow splits into <strong>Drawn Debt</strong> (base Hub rate from utilization) and <strong>Premium Debt</strong> (extra interest charged for collateral risk). The Spoke sorts enabled collateral by ascending Collateral Risk (<code class="font-mono text-xs text-[var(--code-foreground)]">CR_i</code> in <code class="font-mono text-xs">0..1000_00</code> BPS) and only weights the safest slice needed to cover <code class="font-mono text-xs">totalDebt</code>.
+          </p>
+          <ul class="list-disc pl-5 space-y-1.5 text-xs text-[var(--muted-foreground)]">
+            <li><strong>On-chain refresh rule:</strong> <code class="font-mono text-[var(--code-foreground)]">RP_u</code> refreshes on risk-increasing actions (<code class="font-mono">borrow</code>, <code class="font-mono">withdraw</code>, <code class="font-mono">setUsingAsCollateral</code>, non-deficit <code class="font-mono">liquidationCall</code>, and explicit <code class="font-mono">updateUserRiskPremium</code>), while <code class="font-mono">supply</code> and <code class="font-mono">repay</code> avoid refreshing gas overhead.</li>
+            <li><strong>Premium Offset trick:</strong> At update time, virtual <em>premium shares</em> are calibrated so their asset value equals <em>premium offset</em>; only future index growth above the offset accrues as payable premium.</li>
+          </ul>
+          <div class="flex flex-wrap gap-2 pt-1 text-xs">
+            <a href="https://github.com/aave/aave-v4/blob/main/docs/overview.md#risk-premium" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">Spec: docs/overview.md#risk-premium ↗</a>
+            <span class="text-[var(--muted-foreground)]">·</span>
+            <a href="https://github.com/aave/aave-v4/blob/main/src/hub/libraries/Premium.sol#L17" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">Premium.calculatePremiumRay ↗</a>
+            <span class="text-[var(--muted-foreground)]">·</span>
+            <a href="https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L362" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">Hub.refreshPremium ↗</a>
+          </div>
+        </div>
+        <div class="lg:col-span-5 bg-[var(--content)] border border-[var(--border)] rounded-lg p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold">Interactive Greedy Coverage Calculator</span>
+            <span class="text-xs font-mono text-[var(--muted-foreground)]">ETH CR=5_00 · LST CR=25_00</span>
+          </div>
+          <div class="space-y-2 text-xs">
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-[var(--muted-foreground)]">ETH Collateral Value ($):</span>
+              <span id="ethValOut" class="font-mono font-semibold">$10,000</span>
+            </label>
+            <input id="ethValInput" type="range" min="0" max="20000" step="1000" value="10000" class="w-full accent-[var(--primary)]" />
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-[var(--muted-foreground)]">LST Collateral Value ($):</span>
+              <span id="lstValOut" class="font-mono font-semibold">$10,000</span>
+            </label>
+            <input id="lstValInput" type="range" min="0" max="20000" step="1000" value="10000" class="w-full accent-[var(--primary)]" />
+            <label class="flex items-center justify-between gap-2">
+              <span class="text-[var(--muted-foreground)]">Total Debt ($):</span>
+              <span id="debtValOut" class="font-mono font-semibold">$12,000</span>
+            </label>
+            <input id="debtValInput" type="range" min="1000" max="25000" step="1000" value="12000" class="w-full accent-[var(--primary)]" />
+          </div>
+          <div class="border-t border-[var(--border)] pt-2.5 flex items-center justify-between text-xs">
+            <span class="text-[var(--muted-foreground)]">Computed User Risk Premium (<code class="font-mono">RP_u</code>):</span>
+            <span id="rpResult" class="font-mono text-sm font-bold" style="color: var(--primary)">8.33%</span>
+          </div>
+          <p id="rpBreakdown" class="text-xs text-[var(--muted-foreground)]"></p>
+        </div>
+      </div>
+
+      <!-- Tab 2: Dynamic Risk Config -->
+      <div id="tab-dynamic-config" class="tab-panel hidden grid grid-cols-1 lg:grid-cols-2 gap-5 text-sm">
+        <div class="space-y-3">
+          <h3 class="font-semibold text-base">Per-Position Snapshots via <code class="font-mono text-sm">uint32 dynamicConfigKey</code></h3>
+          <p class="text-[var(--muted-foreground)]">
+            In Aave V3, lowering a liquidation threshold immediately impacted every open borrower—creating governance shock liquidations. In Aave V4, updating Collateral Factor (<code class="font-mono text-xs">CF</code>), Max Liquidation Bonus (<code class="font-mono text-xs">LB</code>), or Liquidation Fee (<code class="font-mono text-xs">LF</code>) appends a new version key (up to <code class="font-mono text-xs">2^32</code> entries per reserve).
+          </p>
+          <div class="flex flex-wrap gap-3 text-xs">
+            <a href="https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L194" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">Spoke.addDynamicReserveConfig ↗</a>
+            <a href="https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L427" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">Spoke.updateUserDynamicConfig ↗</a>
+          </div>
+        </div>
+        <div class="bg-[var(--content)] border border-[var(--border)] rounded-lg p-4 space-y-2.5 text-xs">
+          <div class="font-semibold">When Snapshot Keys Refresh vs. Stay Pinned</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="p-3 rounded-md bg-[var(--card)] border border-[var(--border)] space-y-1">
+              <div class="font-semibold" style="color: var(--warning)">Rebinds to Latest Key</div>
+              <p class="text-[var(--muted-foreground)]"><code class="font-mono">borrow</code>, <code class="font-mono">withdraw</code>, <code class="font-mono">setUsingAsCollateral</code> (all reserves when disabling; single reserve when enabling). Reverts if unhealthy under latest params.</p>
+            </div>
+            <div class="p-3 rounded-md bg-[var(--card)] border border-[var(--border)] space-y-1">
+              <div class="font-semibold" style="color: var(--success)">Keeps Historical Key</div>
+              <p class="text-[var(--muted-foreground)]"><code class="font-mono">supply</code>, <code class="font-mono">repay</code>, <code class="font-mono">liquidationCall</code>, <code class="font-mono">updateUserRiskPremium</code> — unless Governor/user explicitly calls <code class="font-mono">updateUserDynamicConfig</code>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Liquidation & Bonus -->
+      <div id="tab-liquidation" class="tab-panel hidden grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div class="lg:col-span-7 space-y-3 text-sm">
+          <h3 class="font-semibold text-base">Target Health Factor, Dust Guards &amp; Dutch-Auction Bonus</h3>
+          <p class="text-[var(--muted-foreground)]">
+            Instead of a fixed 50% close factor, liquidators repay just enough debt to restore the borrower to <code class="font-mono text-xs">TargetHealthFactor</code>. A hard-coded <code class="font-mono text-xs">DUST_LIQUIDATION_THRESHOLD</code> (<code class="font-mono text-xs">1_000 USD</code>) expands allowable repayment so positions cannot get stuck in unliquidatable dust.
+          </p>
+          <ul class="list-disc pl-5 space-y-1.5 text-xs text-[var(--muted-foreground)]">
+            <li><strong>Share payouts (<code class="font-mono">receiveSharesEnabled</code>):</strong> When underlying Hub liquidity is tightly utilized, liquidators can receive Hub supply shares directly instead of underlying tokens.</li>
+            <li><strong>Deficit path:</strong> If all collateral is seized and debt remains, debt clears, risk premium resets to 0, and any active Spoke can call <code class="font-mono">Hub.eliminateDeficit</code> using its supplied shares.</li>
+          </ul>
+          <div class="flex flex-wrap gap-3 text-xs">
+            <a href="https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/LiquidationLogic.sol#L194" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">LiquidationLogic.liquidateUser ↗</a>
+            <a href="https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/LiquidationLogic.sol#L312" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">calculateLiquidationBonus ↗</a>
+            <a href="https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L333" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">Hub.eliminateDeficit ↗</a>
+          </div>
+        </div>
+        <div class="lg:col-span-5 bg-[var(--content)] border border-[var(--border)] rounded-lg p-4 space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold">Dutch-Auction Liquidation Bonus Explorer</span>
+            <span class="font-mono text-[var(--muted-foreground)]">maxLB=105% · factor=50%</span>
+          </div>
+          <div class="space-y-2 text-xs">
+            <label class="flex items-center justify-between">
+              <span class="text-[var(--muted-foreground)]">Health Factor Before Liquidation (<code class="font-mono">hfForMaxBonus=0.80</code>):</span>
+              <span id="hfOut" class="font-mono font-semibold">0.92</span>
+            </label>
+            <input id="hfInput" type="range" min="0.65" max="1.00" step="0.01" value="0.92" class="w-full accent-[var(--primary)]" />
+          </div>
+          <div class="border-t border-[var(--border)] pt-2.5 flex items-center justify-between text-xs">
+            <span class="text-[var(--muted-foreground)]">Gross Liquidation Bonus (<code class="font-mono">lb</code>):</span>
+            <span id="lbResult" class="font-mono text-sm font-bold" style="color: var(--primary)">103.50% (+3.50%)</span>
+          </div>
+          <p class="text-xs text-[var(--muted-foreground)]">At <code class="font-mono">HF = 1.00</code>, bonus starts at <code class="font-mono">minLB = 102.50%</code> and ramps linearly to <code class="font-mono">105.00%</code> at <code class="font-mono">HF &lt;= 0.80</code>.</p>
+        </div>
+      </div>
+
+      <!-- Tab 4: 4 Hub Invariants -->
+      <div id="tab-invariants" class="tab-panel hidden grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div class="p-4 rounded-lg bg-[var(--content)] border border-[var(--border)] space-y-1.5">
+          <div class="font-semibold text-sm">Invariant 1 — Drawn Debt Conservation</div>
+          <p class="font-mono text-[var(--code-foreground)]">totalBorrowedShares == sum(spokeDebtShares)</p>
+          <p class="text-[var(--muted-foreground)]">Across every Spoke connected to a Hub asset, aggregate debt shares cannot diverge from individual Spoke debt accounting.</p>
+        </div>
+        <div class="p-4 rounded-lg bg-[var(--content)] border border-[var(--border)] space-y-1.5">
+          <div class="font-semibold text-sm">Invariant 2 — Asset Backing Bound</div>
+          <p class="font-mono text-[var(--code-foreground)]">hubAddedAssets &gt;= sum(spokeAddedAssets)</p>
+          <p class="text-[var(--muted-foreground)]">Directional share-to-asset rounding in <a href="https://github.com/aave/aave-v4/blob/main/src/hub/libraries/SharesMath.sol#L17" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">SharesMath.sol</a> guarantees total Hub assets remain at least the sum of converted Spoke added claims.</p>
+        </div>
+        <div class="p-4 rounded-lg bg-[var(--content)] border border-[var(--border)] space-y-1.5">
+          <div class="font-semibold text-sm">Invariant 3 — Supply Shares Conservation</div>
+          <p class="font-mono text-[var(--code-foreground)]">hubAddedShares == sum(spokeAddedShares)</p>
+          <p class="text-[var(--muted-foreground)]">Maintained across <code class="font-mono">add</code>, <code class="font-mono">remove</code>, <code class="font-mono">transferShares</code>, <code class="font-mono">mintFeeShares</code>, and cross-Spoke <code class="font-mono">eliminateDeficit</code>.</p>
+        </div>
+        <div class="p-4 rounded-lg bg-[var(--content)] border border-[var(--border)] space-y-1.5">
+          <div class="font-semibold text-sm">Invariant 4 — Index Monotonicity</div>
+          <p class="font-mono text-[var(--code-foreground)]">supplySharePrice &amp; drawnIndex never decrease</p>
+          <p class="text-[var(--muted-foreground)]">Interest accrual, fee minting, repays, and deficit accounting must keep share price and drawn index non-decreasing.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Verified Repository Code Map -->
+    <section class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <h2 class="text-base font-semibold">Verified Aave V4 Source &amp; Verification Index</h2>
+        <span class="text-xs text-[var(--muted-foreground)]">All URLs checked against <code class="font-mono">aave/aave-v4@main</code></span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-[var(--border)] text-[var(--muted-foreground)]">
+              <th class="py-2 pr-4 font-semibold">Module</th>
+              <th class="py-2 pr-4 font-semibold">Source File (Clickable)</th>
+              <th class="py-2 pr-4 font-semibold">Key Symbols / Line Targets</th>
+              <th class="py-2 font-semibold">Verification Role</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border)]">
+            <tr>
+              <td class="py-2.5 pr-4 font-medium">Hub Core</td>
+              <td class="py-2.5 pr-4"><a href="https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)] font-mono">src/hub/Hub.sol</a></td>
+              <td class="py-2.5 pr-4 font-mono"><a href="https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L200" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">add#L200</a>, <a href="https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L249" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">draw#L249</a>, <a href="https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L362" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">refreshPremium#L362</a></td>
+              <td class="py-2.5 text-[var(--muted-foreground)]">Master liquidity ledger &amp; Spoke cap enforcement</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 pr-4 font-medium">Hub Accounting</td>
+              <td class="py-2.5 pr-4"><a href="https://github.com/aave/aave-v4/blob/main/src/hub/libraries/SharesMath.sol" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)] font-mono">src/hub/libraries/SharesMath.sol</a></td>
+              <td class="py-2.5 pr-4 font-mono"><a href="https://github.com/aave/aave-v4/blob/main/src/hub/libraries/SharesMath.sol#L17" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">toSharesDown#L17</a>, <a href="https://github.com/aave/aave-v4/blob/main/src/hub/libraries/SharesMath.sol#L55" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">toAssetsUp#L55</a></td>
+              <td class="py-2.5 text-[var(--muted-foreground)]">Rounding-safe conversions protecting Invariant 2</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 pr-4 font-medium">Base Spoke</td>
+              <td class="py-2.5 pr-4"><a href="https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)] font-mono">src/spoke/Spoke.sol</a></td>
+              <td class="py-2.5 pr-4 font-mono"><a href="https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L228" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">supply#L228</a>, <a href="https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L277" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">borrow#L277</a>, <a href="https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L350" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">liquidationCall#L350</a></td>
+              <td class="py-2.5 text-[var(--muted-foreground)]">Collateral valuation, Risk Premiums &amp; dynamic configs</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 pr-4 font-medium">Liquidation Math</td>
+              <td class="py-2.5 pr-4"><a href="https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/LiquidationLogic.sol" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)] font-mono">src/spoke/libraries/LiquidationLogic.sol</a></td>
+              <td class="py-2.5 pr-4 font-mono"><a href="https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/LiquidationLogic.sol#L194" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">liquidateUser#L194</a>, <a href="https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/LiquidationLogic.sol#L735" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">_calculateDebtToLiquidate#L735</a></td>
+              <td class="py-2.5 text-[var(--muted-foreground)]">Target-HF liquidation, dust guard &amp; bonus curve</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 pr-4 font-medium">Babylon Spoke</td>
+              <td class="py-2.5 pr-4"><a href="https://github.com/aave/aave-v4/blob/main/src/spoke/BabylonSpoke.sol" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)] font-mono">src/spoke/BabylonSpoke.sol</a></td>
+              <td class="py-2.5 pr-4 font-mono"><a href="https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/BabylonLiquidationLogic.sol#L100" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">BabylonLiquidationLogic#L100</a></td>
+              <td class="py-2.5 text-[var(--muted-foreground)]">Single collateral BTC vault &amp; manager-only liquidations</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 pr-4 font-medium">Existing Z3 Proofs</td>
+              <td class="py-2.5 pr-4"><a href="https://github.com/aave/aave-v4/tree/main/tests/misc/z3" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)] font-mono">tests/misc/z3/</a></td>
+              <td class="py-2.5 pr-4 font-mono"><a href="https://github.com/aave/aave-v4/blob/main/tests/misc/z3/debt_to_liquidate.py" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">debt_to_liquidate.py</a>, <a href="https://github.com/aave/aave-v4/blob/main/tests/misc/supply_share_price_deficit.py" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">supply_share_price_deficit.py</a></td>
+              <td class="py-2.5 text-[var(--muted-foreground)]">Python SMT math models (spec-to-Solidity gap target)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const NODES = {
+      hub: {
+        title: "Hub.sol & HubInstance.sol",
+        badge: "Immutable Core Ledger",
+        summary: "Central liquidity pool holding all underlying ERC-20 reserves per network, enforcing per-Spoke add/draw caps, Risk Premium thresholds, deficit accounting, and optional Reinvestment sweeps.",
+        connections: ["spoke", "babylon", "tokenization", "premium", "shares", "irs", "access", "config"],
+        links: [
+          { label: "Hub.sol (full contract)", url: "https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L21" },
+          { label: "Hub.add / Hub.remove", url: "https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L200" },
+          { label: "Hub.draw / Hub.restore", url: "https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L249" },
+          { label: "Hub.reportDeficit / eliminateDeficit", url: "https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L304" },
+          { label: "Hub.refreshPremium", url: "https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L362" },
+          { label: "HubInstance.sol", url: "https://github.com/aave/aave-v4/blob/main/src/hub/instances/HubInstance.sol#L9" }
+        ],
+        invariants: [
+          "totalBorrowedShares == sum(spokeDebtShares)",
+          "hubAddedAssets >= sum(spokeAddedAssets)",
+          "hubAddedShares == sum(spokeAddedShares)",
+          "supplySharePrice and drawnIndex never decrease"
+        ]
+      },
+      spoke: {
+        title: "Spoke.sol",
+        badge: "Upgradeable Market Layer",
+        summary: "User-facing entry point managing supply, withdraw, borrow, repay, collateral toggles, spoke-specific AaveOracle pricing, dynamicConfigKey snapshots, and MAX_USER_RESERVES_LIMIT.",
+        connections: ["hub", "liquidation", "gateways", "access", "config"],
+        links: [
+          { label: "Spoke.sol (full contract)", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L33" },
+          { label: "Spoke.addDynamicReserveConfig", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L194" },
+          { label: "Spoke.supply / withdraw / borrow", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L228" },
+          { label: "Spoke.liquidationCall", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L350" },
+          { label: "Spoke.updateUserRiskPremium", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L418" }
+        ],
+        invariants: [
+          "All user actions guarded by ReentrancyGuardTransient",
+          "Health-decreasing ops auto-rebind dynamicConfigKey & revert if unhealthy",
+          "Cannot drop collateral below debt coverage without reverting"
+        ]
+      },
+      liquidation: {
+        title: "LiquidationLogic.sol",
+        badge: "External Liquidation Library",
+        summary: "Computes Target-HF debt repayment, linear Dutch-auction bonus between threshold and healthFactorForMaxBonus, 1,000 USD dust prevention, share-vs-asset payouts, and deficit reporting.",
+        connections: ["spoke", "hub"],
+        links: [
+          { label: "LiquidationLogic.liquidateUser", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/LiquidationLogic.sol#L194" },
+          { label: "calculateLiquidationBonus", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/LiquidationLogic.sol#L312" },
+          { label: "_calculateDebtToLiquidate", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/LiquidationLogic.sol#L735" },
+          { label: "Z3 proof: debt_to_liquidate.py", url: "https://github.com/aave/aave-v4/blob/main/tests/misc/z3/debt_to_liquidate.py" }
+        ],
+        invariants: [
+          "Self-liquidation prohibited; post-liquidation HF does not overshoot TargetHealthFactor unless clearing dust",
+          "Deficit recorded only when user has zero collateral remaining across all reserves"
+        ]
+      },
+      babylon: {
+        title: "BabylonSpoke.sol & BabylonLiquidationLogic.sol",
+        badge: "BTC Vault Spoke Variant",
+        summary: "Restricts users to 1 collateral (MANAGED_COLLATERAL_RESERVE_ID) and 1 debt reserve. Canonical liquidationCall reverts; only LIQUIDATION_MANAGER executes bounded liquidations with zero liquidation fee.",
+        connections: ["hub", "spoke", "config"],
+        links: [
+          { label: "BabylonSpoke.sol", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/BabylonSpoke.sol#L18" },
+          { label: "BabylonLiquidationLogic.liquidateUser", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/libraries/BabylonLiquidationLogic.sol#L100" },
+          { label: "Z3 proof: babylon_liquidation_logic.py", url: "https://github.com/aave/aave-v4/blob/main/tests/misc/z3/babylon_liquidation_logic.py" }
+        ],
+        invariants: [
+          "Managed BTC collateral reserve can never be marked borrowable",
+          "At most 1 collateral and 1 debt reserve per user; repays premium debt first"
+        ]
+      },
+      tokenization: {
+        title: "TokenizationSpoke.sol",
+        badge: "ERC-4626 Vault Spoke",
+        summary: "Exposes ERC-20 / ERC-4626 vault shares (deposit, mint, withdraw, redeem + EIP-712 intent & EIP-2612 permit flows) backed directly by Hub added liquidity.",
+        connections: ["hub", "config"],
+        links: [
+          { label: "TokenizationSpoke.sol", url: "https://github.com/aave/aave-v4/blob/main/src/spoke/TokenizationSpoke.sol#L18" },
+          { label: "Certora FV Report (Apr 2026)", url: "https://github.com/aave/aave-v4/blob/main/audits/2026-04-13_TokenizationSpoke-Formal-Verification_Certora.pdf" }
+        ],
+        invariants: [
+          "Vault shares convert conservatively via SharesMath",
+          "ERC-4626 maxDeposit/maxMint/maxWithdraw/maxRedeem properties verified"
+        ]
+      },
+      premium: {
+        title: "Premium.sol",
+        badge: "Hub Accounting Library",
+        summary: "Calculates RAY-scaled accrued premium debt as (premiumShares * drawnIndex - premiumOffset), ensuring premium debt grows smoothly while refreshPremium preserves accrued totals.",
+        connections: ["hub", "shares"],
+        links: [
+          { label: "Premium.calculatePremiumRay", url: "https://github.com/aave/aave-v4/blob/main/src/hub/libraries/Premium.sol#L17" },
+          { label: "AssetLogic.sol", url: "https://github.com/aave/aave-v4/blob/main/src/hub/libraries/AssetLogic.sol#L16" },
+          { label: "Hub.refreshPremium", url: "https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L362" }
+        ],
+        invariants: [
+          "refreshPremium preserves total accrued premium debt across RP_u recalculations",
+          "Premium share / drawn share ratio capped by Hub riskPremiumThreshold"
+        ]
+      },
+      shares: {
+        title: "SharesMath.sol & WadRayMath.sol",
+        badge: "Fixed-Point Core Math",
+        summary: "Provides toSharesDown/Up and toAssetsDown/Up conversion helpers in RAY precision so rounding always favors Hub solvency across Spokes.",
+        connections: ["hub", "premium"],
+        links: [
+          { label: "SharesMath.sol", url: "https://github.com/aave/aave-v4/blob/main/src/hub/libraries/SharesMath.sol#L10" },
+          { label: "WadRayMath.sol", url: "https://github.com/aave/aave-v4/blob/main/src/libraries/math/WadRayMath.sol" },
+          { label: "share_assets_conversion.py", url: "https://github.com/aave/aave-v4/blob/main/tests/misc/share_assets_conversion.py" }
+        ],
+        invariants: [
+          "Add / restore round shares down / assets up (never under-collateralize)",
+          "Remove / draw round shares up / assets down (never over-withdraw)"
+        ]
+      },
+      irs: {
+        title: "AssetInterestRateStrategy.sol",
+        badge: "Utilization Curve Module",
+        summary: "Calculates per-asset base drawn rate from Hub usage ratio using optimalUsageRatio, baseDrawnRate, rateGrowthBeforeOptimal, and rateGrowthAfterOptimal.",
+        connections: ["hub"],
+        links: [
+          { label: "AssetInterestRateStrategy.sol", url: "https://github.com/aave/aave-v4/blob/main/src/hub/AssetInterestRateStrategy.sol#L14" },
+          { label: "calculateInterestRate#L102", url: "https://github.com/aave/aave-v4/blob/main/src/hub/AssetInterestRateStrategy.sol#L102" }
+        ],
+        invariants: [
+          "Reinvestment sweeps stay included in denominator so base drawn rate is sweep-neutral"
+        ]
+      },
+      gateways: {
+        title: "Position Managers & Gateways",
+        badge: "User / Relayer Adapter Layer",
+        summary: "Wraps native ETH flows (NativeTokenGateway), EIP-712 signed intents (SignatureGateway), and delegated config/collateral transfers without holding user custody across transactions.",
+        connections: ["spoke"],
+        links: [
+          { label: "SignatureGateway.sol", url: "https://github.com/aave/aave-v4/blob/main/src/position-manager/SignatureGateway.sol#L16" },
+          { label: "NativeTokenGateway.sol", url: "https://github.com/aave/aave-v4/blob/main/src/position-manager/NativeTokenGateway.sol" },
+          { label: "ConfigPositionManager.sol", url: "https://github.com/aave/aave-v4/blob/main/src/position-manager/ConfigPositionManager.sol" }
+        ],
+        invariants: [
+          "Domain-separated EIP-712 signatures with keyed nonces prevent cross-chain/cross-spoke replay"
+        ]
+      },
+      config: {
+        title: "AaveV4ConfigEngine.sol",
+        badge: "Governance Payload Engine",
+        summary: "Delegatecall-based configuration engine generating and executing deterministic Hub asset listings, Spoke cap updates, emergency halts, and reserve parameters.",
+        connections: ["hub", "spoke", "babylon", "tokenization", "access"],
+        links: [
+          { label: "AaveV4ConfigEngine.sol", url: "https://github.com/aave/aave-v4/blob/main/src/config-engine/AaveV4ConfigEngine.sol#L14" },
+          { label: "Certora FV Report (Nov 2026)", url: "https://github.com/aave/aave-v4/blob/main/audits/2026-11-02_Config-and-Deploy-Engine_Certora.pdf" }
+        ],
+        invariants: [
+          "State-changing entry points enforce onlyDelegateCall and validate parameter bounds before applying"
+        ]
+      },
+      access: {
+        title: "AccessManagerEnumerable.sol",
+        badge: "OZ AccessManaged Authority",
+        summary: "Central governance authority enumerating role holders and gating Hub fee minting, emergency halts, Hub/Spoke registration, and parameter updates.",
+        connections: ["hub", "spoke", "config"],
+        links: [
+          { label: "AccessManagerEnumerable.sol", url: "https://github.com/aave/aave-v4/blob/main/src/access/AccessManagerEnumerable.sol" }
+        ],
+        invariants: [
+          "Separation between Governor emergency pause/halt roles and routine configurator roles"
+        ]
+      }
+    };
+
+    const EDGES = [
+      ["access", "hub"], ["access", "spoke"], ["access", "config"],
+      ["config", "hub"], ["config", "spoke"], ["config", "babylon"], ["config", "tokenization"],
+      ["gateways", "spoke"],
+      ["spoke", "liquidation"], ["spoke", "hub"], ["babylon", "hub"], ["tokenization", "hub"],
+      ["hub", "premium"], ["hub", "shares"], ["hub", "irs"], ["premium", "shares"]
+    ];
+
+    let selectedId = "hub";
+
+    function renderInspector(nodeId) {
+      const data = NODES[nodeId];
+      const panel = document.getElementById("inspectorPanel");
+      panel.innerHTML = `
+        <div class="flex items-start justify-between gap-2 border-b border-[var(--border)] pb-3">
+          <div>
+            <span class="text-xs font-medium px-2 py-0.5 rounded bg-[var(--content)] text-[var(--primary)] border border-[var(--border)]">${data.badge}</span>
+            <h3 class="text-lg font-bold mt-2">${data.title}</h3>
+          </div>
+        </div>
+        <p class="text-sm text-[var(--muted-foreground)] leading-relaxed">${data.summary}</p>
+        <div class="space-y-2">
+          <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Workable GitHub Source Links</div>
+          <div class="flex flex-col gap-1.5">
+            ${data.links.map(l => `
+              <a href="${l.url}" target="_blank" rel="noopener noreferrer"
+                 class="flex items-center justify-between px-3 py-2 rounded-lg bg-[var(--content)] border border-[var(--border)] hover:border-[var(--primary)] text-xs font-mono text-[var(--link)]">
+                <span>${l.label}</span>
+                <span>↗</span>
+              </a>
+            `).join("")}
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div class="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">Critical Invariants &amp; Guarantees</div>
+          <ul class="space-y-1.5 text-xs">
+            ${data.invariants.map(inv => `
+              <li class="px-3 py-2 rounded-md bg-[var(--content)] border border-[var(--border)] text-[var(--foreground)] font-mono">${inv}</li>
+            `).join("")}
+          </ul>
+        </div>
+      `;
+    }
+
+    function drawEdges(highlightId) {
+      const stage = document.getElementById("diagramStage");
+      const svg = document.getElementById("edgeOverlay");
+      const rect = stage.getBoundingClientRect();
+      svg.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+      svg.innerHTML = "";
+
+      const connectedSet = new Set(highlightId ? [highlightId, ...(NODES[highlightId]?.connections || [])] : []);
+      document.querySelectorAll(".node-card").forEach(card => {
+        const id = card.dataset.node;
+        card.classList.toggle("is-selected", id === highlightId);
+        card.classList.toggle("is-dimmed", Boolean(highlightId) && !connectedSet.has(id));
+      });
+
+      EDGES.forEach(([a, b]) => {
+        const elA = document.querySelector(`[data-node="${a}"]`);
+        const elB = document.querySelector(`[data-node="${b}"]`);
+        if (!elA || !elB) return;
+        const rA = elA.getBoundingClientRect();
+        const rB = elB.getBoundingClientRect();
+        const x1 = rA.left - rect.left + rA.width / 2;
+        const y1 = rA.top - rect.top + rA.height / 2;
+        const x2 = rB.left - rect.left + rB.width / 2;
+        const y2 = rB.top - rect.top + rB.height / 2;
+        const isActive = !highlightId || a === highlightId || b === highlightId;
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const midY = (y1 + y2) / 2;
+        path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`);
+        path.setAttribute("fill", "none");
+        path.setAttribute("class", "edge-line");
+        path.setAttribute("stroke", isActive && highlightId ? "var(--primary)" : "var(--border)");
+        path.setAttribute("stroke-width", isActive && highlightId ? "2" : "1.2");
+        path.setAttribute("opacity", isActive ? "0.9" : "0.2");
+        svg.appendChild(path);
+      });
+    }
+
+    document.querySelectorAll(".node-card").forEach(card => {
+      card.addEventListener("click", () => {
+        selectedId = card.dataset.node;
+        renderInspector(selectedId);
+        drawEdges(selectedId);
+      });
+    });
+
+    document.getElementById("resetFilterBtn").addEventListener("click", () => {
+      selectedId = null;
+      document.querySelectorAll(".node-card").forEach(c => {
+        c.classList.remove("is-selected", "is-dimmed");
+      });
+      drawEdges(null);
+    });
+
+    // Tabs
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("is-active", b === btn));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.toggle("hidden", p.id !== `tab-${target}`));
+      });
+    });
+
+    // Interactive Risk Premium Calculator
+    function updateRp() {
+      const eth = Number(document.getElementById("ethValInput").value);
+      const lst = Number(document.getElementById("lstValInput").value);
+      const debt = Number(document.getElementById("debtValInput").value);
+      document.getElementById("ethValOut").textContent = `$${eth.toLocaleString()}`;
+      document.getElementById("lstValOut").textContent = `$${lst.toLocaleString()}`;
+      document.getElementById("debtValOut").textContent = `$${debt.toLocaleString()}`;
+      const ethUsed = Math.min(eth, debt);
+      const rem = Math.max(0, debt - ethUsed);
+      const lstUsed = Math.min(lst, rem);
+      const covered = ethUsed + lstUsed;
+      const el = document.getElementById("rpResult");
+      const info = document.getElementById("rpBreakdown");
+      if (covered === 0) {
+        el.textContent = "N/A";
+        info.textContent = "Zero collateral supplied.";
+        return;
+      }
+      const weightedCr = (ethUsed * 5 + lstUsed * 25) / covered;
+      el.textContent = `${weightedCr.toFixed(2)}%`;
+      info.textContent = covered < debt
+        ? `Covered $${covered.toLocaleString()} of $${debt.toLocaleString()} debt using $${ethUsed.toLocaleString()} ETH + $${lstUsed.toLocaleString()} LST (undercollateralized).`
+        : `Covered $${debt.toLocaleString()} debt using $${ethUsed.toLocaleString()} ETH (CR 5%) + $${lstUsed.toLocaleString()} LST (CR 25%).`;
+    }
+    ["ethValInput", "lstValInput", "debtValInput"].forEach(id => {
+      document.getElementById(id).addEventListener("input", updateRp);
+    });
+
+    // Interactive Liquidation Bonus Calculator
+    function updateLb() {
+      const hf = Number(document.getElementById("hfInput").value);
+      document.getElementById("hfOut").textContent = hf.toFixed(2);
+      const maxLB = 105.0, factor = 0.5, minLB = 100 + (maxLB - 100) * factor;
+      const hfMax = 0.80, thresh = 1.00;
+      const lb = hf <= hfMax
+        ? maxLB
+        : minLB + (maxLB - minLB) * ((thresh - hf) / (thresh - hfMax));
+      document.getElementById("lbResult").textContent = `${lb.toFixed(2)}% (+${(lb - 100).toFixed(2)}%)`;
+    }
+    document.getElementById("hfInput").addEventListener("input", updateLb);
+
+    // Init
+    renderInspector(selectedId);
+    updateRp();
+    updateLb();
+    requestAnimationFrame(() => drawEdges(selectedId));
+    window.addEventListener("resize", () => drawEdges(selectedId));
+    window.addEventListener("themechange", () => drawEdges(selectedId));
+  </script>
+</body>
+</html>
