@@ -4,6 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aave V4 Architecture — Interactive Explorer &amp; Code Map</title>
+  <meta name="description" content="Clickable Aave V4 Hub-and-Spoke architecture explorer with line-verified Solidity links, Risk Premium &amp; liquidation calculators, and compositional formal verification methodology." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Aave V4 Architecture — Interactive Explorer &amp; Verification Methodology" />
+  <meta property="og:description" content="Interactive Hub-and-Spoke code map with line-verified links to aave/aave-v4 and a 5-stratum Assume-Guarantee verification pipeline." />
+  <meta property="og:url" content="https://fredluv.github.io/aave-v4-verification-architecture/" />
+  <meta property="og:image" content="https://fredluv.github.io/aave-v4-verification-architecture/preview.png" />
+  <meta property="og:image:width" content="1440" />
+  <meta property="og:image:height" content="756" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Aave V4 Architecture — Interactive Explorer &amp; Code Map" />
+  <meta name="twitter:description" content="Clickable Hub-and-Spoke topology, line-verified Solidity links, and Context-Sliced Assume-Guarantee verification." />
+  <meta name="twitter:image" content="https://fredluv.github.io/aave-v4-verification-architecture/preview.png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -125,23 +137,23 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="access">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-xs font-semibold">AccessManagerEnumerable</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--content)] text-[var(--muted-foreground)]">Authority</span>
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
+                  <span class="text-xs font-semibold break-all">AccessManagerEnumerable</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--content)] text-[var(--muted-foreground)] shrink-0">Authority</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Role-based permissions across Hub &amp; Spokes.</p>
               </div>
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="config">
-                <div class="flex items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
                   <span class="text-xs font-semibold">AaveV4ConfigEngine</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--content)] text-[var(--muted-foreground)]">Payload</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--content)] text-[var(--muted-foreground)] shrink-0">Payload</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Governance listings, caps, halts &amp; reserve setups.</p>
               </div>
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="gateways">
-                <div class="flex items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
                   <span class="text-xs font-semibold">Position Managers</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--content)] text-[var(--muted-foreground)]">Entry</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--content)] text-[var(--muted-foreground)] shrink-0">Entry</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">NativeTokenGateway &amp; SignatureGateway (EIP-712).</p>
               </div>
@@ -155,30 +167,30 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="spoke">
-                <div class="flex items-center justify-between gap-1">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
                   <span class="text-xs font-semibold">Spoke.sol</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-1)">Upgradeable</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--chart-1)">Upgradeable</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Supply, borrow, repay, collateral &amp; dynamic configs.</p>
               </div>
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="liquidation">
-                <div class="flex items-center justify-between gap-1">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
                   <span class="text-xs font-semibold">LiquidationLogic</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-2)">Library</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--chart-2)">Library</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Target-HF sizing, dust checks &amp; Dutch-auction bonus.</p>
               </div>
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="babylon">
-                <div class="flex items-center justify-between gap-1">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
                   <span class="text-xs font-semibold">BabylonSpoke</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-3)">Specialized</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--chart-3)">Specialized</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Single BTC vault collateral + manager liquidations.</p>
               </div>
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="tokenization">
-                <div class="flex items-center justify-between gap-1">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
                   <span class="text-xs font-semibold">TokenizationSpoke</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-4)">ERC-4626</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--chart-4)">ERC-4626</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Tokenized vault shares over Hub liquidity.</p>
               </div>
@@ -197,30 +209,30 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div class="node-card is-selected rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="hub">
-                <div class="flex items-center justify-between gap-1">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
                   <span class="text-xs font-semibold">Hub.sol</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--success)">Immutable</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--success)">Immutable</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Master ledger, Spoke caps, deficit &amp; reinvestment sweeps.</p>
               </div>
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="premium">
-                <div class="flex items-center justify-between gap-1">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
                   <span class="text-xs font-semibold">Premium.sol</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-5)">Library</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--chart-5)">Library</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Premium shares &amp; offset accrual separate from principal.</p>
               </div>
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="shares">
-                <div class="flex items-center justify-between gap-1">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
                   <span class="text-xs font-semibold">SharesMath / WadRay</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-5)">Library</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--chart-5)">Library</span>
                 </div>
-                <p class="text-xs text-[var(--muted-foreground)] mt-1">Directional rounding (`Down`/`Up`) and RAY precision.</p>
+                <p class="text-xs text-[var(--muted-foreground)] mt-1">Directional rounding (<code class="font-mono">Down</code>/<code class="font-mono">Up</code>) and RAY precision.</p>
               </div>
               <div class="node-card rounded-lg border border-[var(--border)] bg-[var(--card)] p-3" data-node="irs">
-                <div class="flex items-center justify-between gap-1">
-                  <span class="text-xs font-semibold">InterestRateStrategy</span>
-                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]" style="color: var(--chart-6)">Module</span>
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
+                  <span class="text-xs font-semibold break-all">InterestRateStrategy</span>
+                  <span class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--chart-6)">Module</span>
                 </div>
                 <p class="text-xs text-[var(--muted-foreground)] mt-1">Kinked utilization curve setting base drawn rate.</p>
               </div>
