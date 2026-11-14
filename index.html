@@ -81,33 +81,19 @@
     <!-- Header -->
     <header class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       <div class="space-y-1.5">
-        <div class="flex flex-wrap items-center gap-2 text-xs font-medium">
-          <span class="px-2.5 py-0.5 rounded-full border border-[var(--border)] bg-[var(--content)] text-[var(--foreground)]">Protocol Architecture Report</span>
-          <span class="px-2.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--muted-foreground)]">Hub-and-Spoke Design</span>
-          <span class="px-2.5 py-0.5 rounded-full border border-[var(--border)] text-[var(--muted-foreground)]">Line-Verified Source Links</span>
-        </div>
         <h1 class="text-2xl font-bold tracking-tight">Aave V4 Architecture &amp; Interactive Code Map</h1>
-        <p class="text-sm text-[var(--muted-foreground)] max-w-3xl">
-          Click any contract node in the architecture map below to inspect its call boundaries, security invariants, and jump straight to exact function lines in the upstream
-          <a href="https://github.com/aave/aave-v4" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)] hover:opacity-80">aave/aave-v4</a> repository.
+        <p class="text-sm text-[var(--muted-foreground)] max-w-2xl">
+          Click any contract node below to trace call boundaries, view invariants, and jump to verified Solidity source lines.
         </p>
       </div>
-      <div class="flex flex-wrap gap-2 text-xs shrink-0">
+      <div class="flex flex-wrap items-center gap-3 text-xs shrink-0">
         <a href="https://github.com/aave/aave-v4#architecture" target="_blank" rel="noopener noreferrer"
-           class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)] font-medium">
-          GitHub README ↗
-        </a>
-        <a href="https://github.com/aave/aave-v4/blob/main/docs/overview.md" target="_blank" rel="noopener noreferrer"
-           class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)] font-medium">
-          docs/overview.md ↗
+           class="px-3.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)] font-medium">
+          aave/aave-v4 ↗
         </a>
         <a href="https://github.com/fredLuv/aave-v4-verification-architecture/blob/main/methodology.md" target="_blank" rel="noopener noreferrer"
-           class="px-3 py-2 rounded-lg border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 font-medium">
+           class="px-3.5 py-2 rounded-lg border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 font-medium">
           Verification Methodology ↗
-        </a>
-        <a href="https://github.com/aave/aave-v4/tree/main/audits" target="_blank" rel="noopener noreferrer"
-           class="px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)] font-medium">
-          Audit &amp; Certora PDFs ↗
         </a>
       </div>
     </header>
