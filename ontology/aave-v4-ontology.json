@@ -1,0 +1,236 @@
+{
+  "schema_version": "1.0.0",
+  "name": "Aave V4 Agentic Protocol Ontology",
+  "upstream_repo": "https://github.com/aave/aave-v4",
+  "branch": "main",
+  "inspired_by": "Databricks Genie Ontology (Domains, Canonical Terms, Exception Rules, Source-Linked Snippets, and Curation Governance)",
+  "domains": [
+    {
+      "id": "hub-core",
+      "name": "Liquidity Core (Hub)",
+      "paths": ["src/hub/Hub.sol", "src/hub/HubStorage.sol", "src/hub/instances/HubInstance.sol", "src/hub/libraries/AssetLogic.sol"],
+      "certora_report": "audits/2026-03-09_Hub-Formal-Verification_Certora.pdf",
+      "coverage": "Unit + Certora + Z3 Math",
+      "summary": "Immutable single-pool accounting ledger holding underlying ERC-20 liquidity, enforcing Spoke add/draw caps, risk premium thresholds, deficits, and interest accrual."
+    },
+    {
+      "id": "spoke-markets",
+      "name": "Risk Markets (Spokes)",
+      "paths": ["src/spoke/Spoke.sol", "src/spoke/SpokeStorage.sol", "src/spoke/BabylonSpoke.sol", "src/spoke/TokenizationSpoke.sol"],
+      "certora_report": "audits/2026-03-09_Spoke-Formal-Verification_Certora.pdf",
+      "coverage": "Unit + Certora + Differential",
+      "summary": "Upgradeable user-facing modules managing collateral valuation, per-spoke AaveOracle pricing, reserve limits, and specialized markets (Babylon BTC vault, ERC-4626 Tokenization)."
+    },
+    {
+      "id": "risk-premium",
+      "name": "Risk Premium & Accrual",
+      "paths": ["src/hub/libraries/Premium.sol", "src/hub/Hub.sol#L362", "src/spoke/Spoke.sol#L418", "docs/overview.md#risk-premium"],
+      "certora_report": "audits/2026-03-09_Libraries-Formal-Verification_Certora.pdf",
+      "coverage": "Unit + Certora",
+      "summary": "Dual-stream debt separating principal drawn debt from collateral-risk premium debt via virtual premium shares and signed RAY offsets."
+    },
+    {
+      "id": "dynamic-config",
+      "name": "Dynamic Risk Configuration",
+      "paths": ["src/spoke/Spoke.sol#L194", "src/spoke/Spoke.sol#L427", "docs/overview.md#dynamic-risk-configuration"],
+      "certora_report": "audits/2026-03-09_Spoke-Formal-Verification_Certora.pdf",
+      "coverage": "Unit + Certora",
+      "summary": "Append-only uint32 dynamicConfigKey snapshots isolating existing borrower positions from sudden Collateral Factor or Liquidation Bonus parameter tightening."
+    },
+    {
+      "id": "liquidation-engine",
+      "name": "Liquidation & Deficit Engine",
+      "paths": ["src/spoke/libraries/LiquidationLogic.sol", "src/spoke/libraries/BabylonLiquidationLogic.sol", "tests/misc/z3/debt_to_liquidate.py"],
+      "certora_report": "audits/2026-03-09_Libraries-Formal-Verification_Certora.pdf",
+      "coverage": "Unit + Python Z3 Spec (Bytecode Gap)",
+      "summary": "Target Health Factor liquidation sizing, 1,000 USD dust prevention, Dutch-auction linear bonus, share payouts, and cross-Spoke deficit elimination."
+    },
+    {
+      "id": "gateways-gov",
+      "name": "Gateways, Access & Config Engine",
+      "paths": ["src/position-manager/SignatureGateway.sol", "src/position-manager/NativeTokenGateway.sol", "src/config-engine/AaveV4ConfigEngine.sol", "src/access/AccessManagerEnumerable.sol"],
+      "certora_report": "audits/2026-11-02_Config-and-Deploy-Engine_Certora.pdf",
+      "coverage": "Unit + Certora",
+      "summary": "EIP-712 intent gateways, wrapped ETH adapters, role-based AccessManager authority, and delegatecall governance payload engine."
+    }
+  ],
+  "entities": [
+    {
+      "id": "Hub",
+      "domain": "hub-core",
+      "source": "https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L21",
+      "relations": ["CAPS -> Spoke (addCap, drawCap)", "ACCRUES_VIA -> AssetInterestRateStrategy", "USES -> SharesMath & Premium"]
+    },
+    {
+      "id": "Spoke",
+      "domain": "spoke-markets",
+      "source": "https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L33",
+      "relations": ["SETTLES_IN -> Hub via IHubBase", "PRICES_VIA -> AaveOracle", "DELEGATES_LIQUIDATION -> LiquidationLogic"]
+    },
+    {
+      "id": "BabylonSpoke",
+      "domain": "spoke-markets",
+      "source": "https://github.com/aave/aave-v4/blob/main/src/spoke/BabylonSpoke.sol#L18",
+      "relations": ["EXTENDS -> Spoke", "OVERRIDES -> liquidationCall (reverts canonical)", "DELEGATES_TO -> BabylonLiquidationLogic"]
+    },
+    {
+      "id": "DynamicReserveConfig",
+      "domain": "dynamic-config",
+      "source": "https://github.com/aave/aave-v4/blob/main/src/spoke/Spoke.sol#L194",
+      "relations": ["INDEXED_BY -> uint32 dynamicConfigKey", "PINNED_TO -> UserPosition"]
+    },
+    {
+      "id": "PremiumDelta",
+      "domain": "risk-premium",
+      "source": "https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L362",
+      "relations": ["CALIBRATES -> premiumShares & int256 premiumOffsetRay", "PRESERVES -> accrued premium debt"]
+    }
+  ],
+  "terms": [
+    {
+      "id": "signed-premium-offset",
+      "term": "Signed Premium Offset (int256 premiumOffsetRay)",
+      "domain": "risk-premium",
+      "authority": 98,
+      "rule": "Accrued premium debt is computed as ((premiumShares * drawnIndex).toInt256() - premiumOffsetRay).toUint256(). Because premiumOffsetRay is signed int256, it can legitimately become negative when a user's previously accrued premium exceeds the recalibrated (newPremiumShares * drawnIndex) baseline during refreshPremium.",
+      "naive_agent_trap": "Assuming offsets are unsigned (uint256) and clamping or asserting offset >= 0 in formal specs or Z3 models.",
+      "source_url": "https://github.com/aave/aave-v4/blob/main/src/hub/libraries/Premium.sol#L17"
+    },
+    {
+      "id": "lazy-rp-and-config-refresh",
+      "term": "Risk-Increasing-Only Refresh (RP_u & dynamicConfigKey)",
+      "domain": "dynamic-config",
+      "authority": 97,
+      "rule": "supply(), repay(), and liquidationCall() intentionally do NOT refresh User Risk Premium (RP_u) or rebind dynamicConfigKey snapshots (liquidationCall only touches premium in its flow when relevant, never updating dynamicConfigKey). Only risk-increasing operations (borrow, withdraw, setUsingAsCollateral) rebind dynamicConfigKey to latest and revert if unhealthy.",
+      "naive_agent_trap": "Assuming Governor calls to addDynamicReserveConfig immediately rebind or liquidate passive open borrowers, or expecting supply()/repay() to trigger a premium recalibration.",
+      "source_url": "https://github.com/aave/aave-v4/blob/main/docs/overview.md#dynamic-risk-configuration"
+    },
+    {
+      "id": "virtual-shares-inflation-guard",
+      "term": "Baked-In Virtual Shares & Assets (1e6 Offset)",
+      "domain": "hub-core",
+      "authority": 99,
+      "rule": "All four conversion helpers in SharesMath.sol add VIRTUAL_ASSETS = 1e6 and VIRTUAL_SHARES = 1e6 unconditionally, bounding share-inflation rounding attacks on empty or near-empty reserves.",
+      "naive_agent_trap": "Writing Hub solvency or share conversion proofs using raw totalAssets / totalShares ratios without the +1e6 virtual offset.",
+      "source_url": "https://github.com/aave/aave-v4/blob/main/src/hub/libraries/SharesMath.sol#L13"
+    },
+    {
+      "id": "hub-immutable-despite-base",
+      "term": "Immutable Hub Deployment Despite AccessManagedUpgradeable",
+      "domain": "hub-core",
+      "authority": 96,
+      "rule": "Hub.sol inherits AccessManagedUpgradeable (used with HubInstance.initialize and HUB_REVISION), yet protocol architecture deploys Hub as immutable (non-upgradeable core) while keeping Spokes upgradeable.",
+      "naive_agent_trap": "Seeing AccessManagedUpgradeable in Hub.sol line 21 and wrongly treating Hub as a governance-upgradeable proxy in threat models.",
+      "source_url": "https://github.com/aave/aave-v4/blob/main/src/hub/Hub.sol#L21"
+    },
+    {
+      "id": "dust-threshold-override",
+      "term": "Dust Threshold Override over Target Health Factor",
+      "domain": "liquidation-engine",
+      "authority": 96,
+      "rule": "Normally liquidation debt is capped to restore TargetHealthFactor. However, if post-liquidation remaining debt would fall below DUST_LIQUIDATION_THRESHOLD (1,000 USD value units) and the liquidator signals full-debt coverage intent, the protocol expands max liquidatable debt to wipe the entire debt.",
+      "naive_agent_trap": "Asserting post-liquidation HF <= TargetHealthFactor universally in symbolic specs without exempting dust-clearing liquidations.",
+      "source_url": "https://github.com/aave/aave-v4/blob/main/docs/overview.md#dust-and-rounding-considerations"
+    },
+    {
+      "id": "babylon-spoke-exceptions",
+      "term": "BabylonSpoke Canonical Liquidation Override",
+      "domain": "spoke-markets",
+      "authority": 95,
+      "rule": "On BabylonSpoke, canonical liquidationCall reverts unconditionally. Liquidations occur exclusively through LIQUIDATION_MANAGER with bounded collateral caps, zero liquidation fee, underlying-asset payout only, and premium debt repaid first.",
+      "naive_agent_trap": "Applying generic Spoke liquidation liveness invariants ('anyone can liquidate when HF < 1') directly to BabylonSpoke.",
+      "source_url": "https://github.com/aave/aave-v4/blob/main/src/spoke/BabylonSpoke.sol#L45"
+    },
+    {
+      "id": "sweep-neutral-utilization",
+      "term": "Sweep-Neutral Reinvestment Utilization Denominator",
+      "domain": "hub-core",
+      "authority": 95,
+      "rule": "Idle liquidity swept to external strategies via Hub.sweep() remains counted inside the AssetInterestRateStrategy utilization denominator so base drawn borrow rates stay completely unaffected by reinvestment allocations.",
+      "naive_agent_trap": "Computing Hub utilization solely from contract ERC-20 balanceOf(hub) and mispredicting rate spikes on reinvestment sweeps.",
+      "source_url": "https://github.com/aave/aave-v4/blob/main/docs/overview.md#reinvestment"
+    },
+    {
+      "id": "z3-python-bytecode-gap",
+      "term": "Python Z3 Proof vs. Solidity Bytecode Boundary",
+      "domain": "liquidation-engine",
+      "authority": 94,
+      "rule": "tests/misc/z3/*.py proves algebraic inequalities over Python ints (fromRayDown/Up in commons.py). These do not prove compiled Solidity execution—only Halmos/Certora rules bound to compiled EVM bytecode verify actual storage, casting, and branching parity.",
+      "naive_agent_trap": "Treating passing Python Z3 tests in tests/misc/z3/ as full formal verification of LiquidationLogic.sol.",
+      "source_url": "https://github.com/aave/aave-v4/blob/main/tests/misc/z3/debt_to_liquidate.py"
+    }
+  ],
+  "snippets": [
+    {
+      "id": "snip-hub-solvency",
+      "title": "Audit Hub Accounting & Spoke Contagion Isolation",
+      "task_tags": ["hub", "solvency", "invariants", "spoke", "deficit"],
+      "estimated_tokens": 980,
+      "naive_full_repo_tokens": 145000,
+      "files": [
+        "src/hub/Hub.sol#L200-L430",
+        "src/hub/libraries/SharesMath.sol#L10-L63",
+        "src/hub/interfaces/IHubBase.sol#L99-L181"
+      ],
+      "context_markdown": "## Slice: Hub Accounting & Contagion Boundary\n- **Invariants**: (1) totalBorrowedShares == sum(spokeDebtShares); (2) hubAddedAssets >= sum(spokeAddedAssets); (3) hubAddedShares == sum(spokeAddedShares); (4) supplySharePrice & drawnIndex monotonically non-decreasing.\n- **Rounding Seam (`SharesMath.sol#L13-62`)**: All 4 helpers use `VIRTUAL_ASSETS = 1e6`, `VIRTUAL_SHARES = 1e6`. `add`/`restore` favor Hub upward/downward conservatively.\n- **Cross-Spoke Isolation (`Hub.sol#L158-360`)**: Each Spoke is constrained by `addCap`, `drawCap`, `riskPremiumThreshold`, and `active/halted` state. `reportDeficit`/`eliminateDeficit` transfer shares without external capital injection.\n- **Trap to Avoid**: Reinvestment sweeps (`Hub.sweep#L406`) stay in utilization denominator (`AssetInterestRateStrategy`); Hub is deployed immutable despite inheriting `AccessManagedUpgradeable`."
+    },
+    {
+      "id": "snip-risk-premium",
+      "title": "Verify Risk Premium Accrual & refreshPremium Conservation",
+      "task_tags": ["risk-premium", "interest", "refresh", "offset"],
+      "estimated_tokens": 860,
+      "naive_full_repo_tokens": 145000,
+      "files": [
+        "src/hub/libraries/Premium.sol#L9-L24",
+        "src/hub/Hub.sol#L362",
+        "src/spoke/Spoke.sol#L418",
+        "docs/overview.md#risk-premium"
+      ],
+      "context_markdown": "## Slice: Dual-Stream Interest & Risk Premium\n- **Greedy Coverage (`docs/overview.md#risk-premium`)**: Sort enabled collaterals ascending by `CR_i` (`0..1000_00` BPS); weight only the safest slice needed to cover `totalDebt`.\n- **Formula (`Premium.sol#L17-22`)**: `((premiumShares * drawnIndex).toInt256() - premiumOffsetRay).toUint256()`. Note `premiumOffsetRay` is **signed `int256`**.\n- **Conservation Obligation**: Calling `Hub.refreshPremium#L362` must preserve exact total accrued premium debt before vs. after recalculating shares & offset.\n- **Trap to Avoid**: `supply` & `repay` intentionally do NOT refresh `RP_u`; use `updateUserRiskPremium` (`Spoke.sol#L418`) for explicit recalibration."
+    },
+    {
+      "id": "snip-liquidation-dust",
+      "title": "Verify Target-HF Liquidation, Dust & Babylon Override",
+      "task_tags": ["liquidation", "dust", "z3", "babylon", "dutch-auction"],
+      "estimated_tokens": 1120,
+      "naive_full_repo_tokens": 145000,
+      "files": [
+        "src/spoke/libraries/LiquidationLogic.sol#L194-350",
+        "src/spoke/libraries/LiquidationLogic.sol#L735-820",
+        "src/spoke/BabylonSpoke.sol#L45-130",
+        "tests/misc/z3/debt_to_liquidate.py"
+      ],
+      "context_markdown": "## Slice: Liquidation Sizing, Dust & Specialized Spokes\n- **Target HF vs Close Factor**: Repay enough debt to restore `TargetHealthFactor >= HEALTH_FACTOR_LIQUIDATION_THRESHOLD` (`LiquidationLogic.sol#L194`).\n- **Dust Rule**: `DUST_LIQUIDATION_THRESHOLD = 1_000 USD` expands max debt to allow full clearance when residual debt < dust and full coverage is intended.\n- **Dutch-Auction Bonus (`LiquidationLogic.sol#L312`)**: Interpolates linearly from `(maxLB - 100%) * lbFactor + 100%` at threshold up to `maxLB` at `healthFactorForMaxBonus`.\n- **BabylonSpoke Exception (`BabylonSpoke.sol#L45`)**: Canonical `liquidationCall` reverts; only `LIQUIDATION_MANAGER` can liquidate, capped collateral, zero fee, asset payout only.\n- **Proof Obligation Gap**: Port `tests/misc/z3/debt_to_liquidate.py` to Halmos/CVL so checks bind to compiled `.sol` bytecode."
+    },
+    {
+      "id": "snip-dynamic-config",
+      "title": "Audit Dynamic Risk Configuration & Rebinding Safety",
+      "task_tags": ["dynamic-config", "governance", "upgrade", "borrow"],
+      "estimated_tokens": 740,
+      "naive_full_repo_tokens": 145000,
+      "files": [
+        "src/spoke/Spoke.sol#L194",
+        "src/spoke/Spoke.sol#L228-350",
+        "src/spoke/Spoke.sol#L427",
+        "src/config-engine/AaveV4ConfigEngine.sol#L14"
+      ],
+      "context_markdown": "## Slice: Per-Position uint32 dynamicConfigKey Snapshots\n- **Mechanism**: Governor updates append a new key via `addDynamicReserveConfig` (`Spoke.sol#L194`) without mutating open positions.\n- **Rebind Rule**: `borrow`, `withdraw`, and `setUsingAsCollateral` rebind the user's snapshot to latest and revert if unhealthy; `supply`, `repay`, `liquidationCall`, and `updateUserRiskPremium` keep the prior key.\n- **Override**: `updateUserDynamicConfig` (`Spoke.sol#L427`) refreshes all collateral snapshots for a user and recalculates `RP_u`."
+    }
+  ],
+  "curation_queue": [
+    {
+      "id": "gap-z3-to-bytecode",
+      "severity": "High",
+      "title": "Bind tests/misc/z3/*.py formulas to EVM bytecode via Halmos/CVL",
+      "status": "Open Review Item",
+      "detail": "Convert Python Z3 rounding proofs (debt_to_liquidate.py, liquidation_logic.py) into bytecode-bound symbolic rules in CI."
+    },
+    {
+      "id": "gap-adversarial-spoke",
+      "severity": "Medium",
+      "title": "Synthesize AdversarialSpoke.sol extensibility gate",
+      "status": "Recommended Next Build",
+      "detail": "Compile an unseen hostile ISpoke against unmodified Hub.sol in Foundry invariant CI to prove Hub cap/premium isolation without trusting new Spokes."
+    }
+  ]
+}

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aave V4 Agentic Ontology — Protocol Context &amp; Exception Rules</title>
+  <meta name="description" content="Databricks-inspired Agentic Ontology for Aave V4: curated protocol domains, authority-scored exception rules, naive-agent traps, and token-budgeted audit context slices." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Aave V4 Agentic Ontology — Protocol Context &amp; Verification Layer" />
+  <meta property="og:description" content="Replace 145k-token blind repo scans with curated ~1k-token ontology slices, exception rules, and line-verified Aave V4 provenance." />
+  <meta property="og:image" content="https://fredluv.github.io/aave-v4-verification-architecture/preview.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --background: #f8fafc;
+      --content: #f1f5f9;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --foreground: #0f172a;
+      --muted-foreground: #475569;
+      --code-foreground: #0f172a;
+      --primary: #2563eb;
+      --primary-foreground: #ffffff;
+      --link: #1d4ed8;
+      --success: #16a34a;
+      --warning: #d97706;
+      --error: #dc2626;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #0b1120;
+        --content: #111827;
+        --card: #162032;
+        --border: #263248;
+        --foreground: #f1f5f9;
+        --muted-foreground: #94a3b8;
+        --code-foreground: #e2e8f0;
+        --primary: #60a5fa;
+        --primary-foreground: #0b1120;
+        --link: #93c5fd;
+        --success: #4ade80;
+        --warning: #fbbf24;
+        --error: #f87171;
+      }
+    }
+    .domain-pill.is-active {
+      background-color: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased m-0 p-6">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Minimal Essential Header -->
+    <header class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div class="space-y-1.5">
+        <h1 class="text-2xl font-bold tracking-tight">Aave V4 Agentic Ontology</h1>
+        <p class="text-sm text-[var(--muted-foreground)] max-w-2xl">
+          Curated semantic context layer for auditing and verifying Aave V4—canonical rules, naive-agent traps, and token-budgeted source slices.
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 text-xs shrink-0">
+        <a href="./index.html"
+           class="px-3.5 py-2 rounded-lg border border-[var(--border)] bg-[var(--content)] hover:border-[var(--primary)] font-medium">
+          &larr; Architecture Map
+        </a>
+        <a href="https://github.com/fredLuv/aave-v4-verification-architecture/blob/main/ontology/aave-v4-ontology.json" target="_blank" rel="noopener noreferrer"
+           class="px-3.5 py-2 rounded-lg border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] hover:opacity-90 font-medium">
+          Raw Ontology JSON ↗
+        </a>
+      </div>
+    </header>
+
+    <!-- Metrics Strip -->
+    <section id="statsStrip" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></section>
+
+    <!-- Task Context Slice Assembler -->
+    <section class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-[var(--border)] pb-3">
+        <div>
+          <h2 class="text-base font-semibold">Task Context Slice Assembler</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Select a verification task to extract the exact ~1k-token ontology context slice instead of scanning the full repo.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <input id="searchInput" type="search" placeholder="Filter rules &amp; slices (Babylon, int256, dust)..."
+                 class="px-3 py-1.5 rounded-lg bg-[var(--content)] border border-[var(--border)] text-xs w-full sm:w-80 focus:outline-none focus:border-[var(--primary)]" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div id="sliceList" class="lg:col-span-5 space-y-2.5"></div>
+        <div id="sliceViewer" class="lg:col-span-7 bg-[var(--content)] border border-[var(--border)] rounded-lg p-4 space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- Certified Rules & Naive-Agent Traps -->
+    <section class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-[var(--border)] pb-3">
+        <div>
+          <h2 class="text-base font-semibold">Certified Protocol Rules &amp; Naive-Agent Traps</h2>
+          <p class="text-xs text-[var(--muted-foreground)]">Authority-scored exceptions that raw Solidity scanning or Python Z3 scripts frequently misread.</p>
+        </div>
+        <div id="domainFilters" class="flex flex-wrap gap-2 text-xs"></div>
+      </div>
+      <div id="termsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- Governance & Curation Queue + CLI -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div class="lg:col-span-7 bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-3">
+        <h2 class="text-base font-semibold">Ontology Curation &amp; Coverage Queue</h2>
+        <div id="queueList" class="space-y-2.5"></div>
+      </div>
+      <div class="lg:col-span-5 bg-[var(--card)] border border-[var(--border)] rounded-xl p-5 space-y-3 text-xs">
+        <h2 class="text-base font-semibold">Agent CLI Query Usage</h2>
+        <p class="text-[var(--muted-foreground)]">Query the ontology directly from terminal or CI without external packages:</p>
+        <pre class="p-3 rounded-lg bg-[var(--content)] border border-[var(--border)] font-mono overflow-x-auto text-[var(--code-foreground)]">python3 scripts/query_ontology.py --list-domains
+python3 scripts/query_ontology.py "premium"
+python3 scripts/query_ontology.py "liquidation"
+python3 scripts/query_ontology.py --curation-queue</pre>
+        <p class="text-[var(--muted-foreground)]">
+          Source spec: <a href="https://github.com/fredLuv/aave-v4-verification-architecture/blob/main/scripts/query_ontology.py" target="_blank" rel="noopener noreferrer" class="underline text-[var(--link)]">scripts/query_ontology.py ↗</a>
+        </p>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    let ONTO = null;
+    let activeDomain = "all";
+    let activeSliceId = null;
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    function renderStats() {
+      const avgTokens = Math.round(ONTO.snippets.reduce((a, s) => a + s.estimated_tokens, 0) / ONTO.snippets.length);
+      const baseline = ONTO.snippets[0].naive_full_repo_tokens;
+      const pctSaved = ((1 - avgTokens / baseline) * 100).toFixed(1);
+      const stats = [
+        { label: "Protocol Domains", val: ONTO.domains.length, sub: "Mapped to aave/aave-v4 paths + Certora PDFs" },
+        { label: "Exception Rules & Traps", val: ONTO.terms.length, sub: "Authority-scored (94–99) edge constraints" },
+        { label: "Context Slices", val: ONTO.snippets.length, sub: `Avg ~${avgTokens} tokens per verification task` },
+        { label: "Context Reduction", val: `${pctSaved}%`, sub: `vs ~${baseline.toLocaleString()} naive full-repo tokens` }
+      ];
+      document.getElementById("statsStrip").innerHTML = stats.map(st => `
+        <div class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
+          <div class="text-xs text-[var(--muted-foreground)]">${esc(st.label)}</div>
+          <div class="text-2xl font-bold mt-1" style="color: var(--primary)">${esc(st.val)}</div>
+          <div class="text-xs text-[var(--muted-foreground)] mt-1">${esc(st.sub)}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderSlices(query) {
+      const q = query.trim().toLowerCase();
+      const filtered = ONTO.snippets.filter(s =>
+        !q || (s.title + " " + s.task_tags.join(" ") + " " + s.context_markdown).toLowerCase().includes(q)
+      );
+      if (!filtered.some(s => s.id === activeSliceId)) {
+        activeSliceId = filtered[0]?.id || null;
+      }
+
+      document.getElementById("sliceList").innerHTML = filtered.length
+        ? filtered.map(s => {
+            const active = s.id === activeSliceId;
+            return `
+              <button type="button" onclick="selectSlice('${s.id}')"
+                      class="w-full text-left p-3.5 rounded-lg border transition ${active ? "border-[var(--primary)] bg-[var(--content)]" : "border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]"}">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-semibold">${esc(s.title)}</span>
+                  <span class="text-xs font-mono px-1.5 py-0.5 rounded border border-[var(--border)] shrink-0" style="color: var(--success)">~${s.estimated_tokens} tok</span>
+                </div>
+                <div class="flex flex-wrap gap-1 mt-2">
+                  ${s.task_tags.map(t => `<span class="text-xs px-1.5 py-0.5 rounded bg-[var(--background)] border border-[var(--border)] text-[var(--muted-foreground)]">${esc(t)}</span>`).join("")}
+                </div>
+              </button>
+            `;
+          }).join("")
+        : `<div class="text-xs text-[var(--muted-foreground)] p-4 border border-[var(--border)] rounded-lg">No context slice matches that filter.</div>`;
+
+      const current = ONTO.snippets.find(s => s.id === activeSliceId);
+      const viewer = document.getElementById("sliceViewer");
+      if (!current) {
+        viewer.innerHTML = `<div class="text-xs text-[var(--muted-foreground)]">Select a slice on the left to preview its token-bounded bundle.</div>`;
+        return;
+      }
+      const savings = ((1 - current.estimated_tokens / current.naive_full_repo_tokens) * 100).toFixed(1);
+      viewer.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-2.5">
+          <div>
+            <div class="text-sm font-semibold">${esc(current.title)}</div>
+            <div class="text-xs text-[var(--muted-foreground)]">${current.estimated_tokens.toLocaleString()} tokens vs ${current.naive_full_repo_tokens.toLocaleString()} raw repo (${savings}% saved)</div>
+          </div>
+          <button type="button" id="copySliceBtn"
+                  class="text-xs px-3 py-1.5 rounded-md border border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-foreground)] font-medium hover:opacity-90">
+            Copy Context Slice
+          </button>
+        </div>
+        <pre class="text-xs font-mono whitespace-pre-wrap leading-relaxed text-[var(--foreground)] bg-[var(--card)] border border-[var(--border)] rounded-lg p-3">${esc(current.context_markdown)}</pre>
+        <div class="space-y-1">
+          <div class="text-xs font-semibold text-[var(--muted-foreground)]">Exact Verified Source Targets</div>
+          <div class="flex flex-wrap gap-2">
+            ${current.files.map(f => {
+              const path = f.split("#")[0];
+              const hash = f.includes("#") ? "#" + f.split("#")[1] : "";
+              const url = `https://github.com/aave/aave-v4/blob/main/${path}${hash}`;
+              return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono px-2 py-1 rounded bg-[var(--card)] border border-[var(--border)] text-[var(--link)] hover:border-[var(--primary)]">${esc(f)} ↗</a>`;
+            }).join("")}
+          </div>
+        </div>
+      `;
+      document.getElementById("copySliceBtn").addEventListener("click", async () => {
+        await navigator.clipboard.writeText(current.context_markdown + "\n\nFiles: " + current.files.join(", "));
+        document.getElementById("copySliceBtn").textContent = "Copied!";
+        setTimeout(() => { document.getElementById("copySliceBtn").textContent = "Copy Context Slice"; }, 1400);
+      });
+    }
+
+    function selectSlice(id) {
+      activeSliceId = id;
+      renderSlices(document.getElementById("searchInput").value);
+    }
+
+    function renderDomainFilters() {
+      const container = document.getElementById("domainFilters");
+      const pills = [{ id: "all", name: "All Domains" }, ...ONTO.domains.map(d => ({ id: d.id, name: d.name }))];
+      container.innerHTML = pills.map(p => `
+        <button type="button" onclick="setDomain('${p.id}')"
+                class="domain-pill px-2.5 py-1 rounded-lg border border-[var(--border)] font-medium ${activeDomain === p.id ? "is-active" : "bg-[var(--content)]"}">
+          ${esc(p.name)}
+        </button>
+      `).join("");
+    }
+
+    function setDomain(id) {
+      activeDomain = id;
+      renderDomainFilters();
+      renderTerms(document.getElementById("searchInput").value);
+    }
+
+    function renderTerms(query) {
+      const q = query.trim().toLowerCase();
+      const filtered = ONTO.terms.filter(t => {
+        const matchDom = activeDomain === "all" || t.domain === activeDomain;
+        const matchQ = !q || (t.term + " " + t.rule + " " + t.naive_agent_trap).toLowerCase().includes(q);
+        return matchDom && matchQ;
+      });
+      document.getElementById("termsGrid").innerHTML = filtered.map(t => `
+        <article class="p-4 rounded-lg bg-[var(--content)] border border-[var(--border)] space-y-2.5 text-xs">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-sm font-semibold">${esc(t.term)}</h3>
+            <span class="font-mono px-2 py-0.5 rounded bg-[var(--card)] border border-[var(--border)]" style="color: var(--primary)">Authority ${t.authority}</span>
+          </div>
+          <p class="text-[var(--foreground)] leading-relaxed">${esc(t.rule)}</p>
+          <div class="p-2.5 rounded bg-[var(--card)] border border-[var(--border)]">
+            <span class="font-semibold" style="color: var(--warning)">Naive Agent Trap:</span>
+            <span class="text-[var(--muted-foreground)]"> ${esc(t.naive_agent_trap)}</span>
+          </div>
+          <div class="pt-0.5">
+            <a href="${esc(t.source_url)}" target="_blank" rel="noopener noreferrer" class="font-mono underline text-[var(--link)]">
+              Inspect verified line in aave/aave-v4 ↗
+            </a>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderQueue() {
+      document.getElementById("queueList").innerHTML = ONTO.curation_queue.map(q => `
+        <div class="p-3.5 rounded-lg bg-[var(--content)] border border-[var(--border)] space-y-1 text-xs">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-semibold">${esc(q.title)}</span>
+            <span class="px-2 py-0.5 rounded border border-[var(--border)] font-mono" style="color: ${q.severity === "High" ? "var(--error)" : "var(--warning)"}">${esc(q.severity)} · ${esc(q.status)}</span>
+          </div>
+          <p class="text-[var(--muted-foreground)]">${esc(q.detail)}</p>
+        </div>
+      `).join("");
+    }
+
+    async function init() {
+      const resp = await fetch("./ontology/aave-v4-ontology.json");
+      ONTO = await resp.json();
+      renderStats();
+      renderSlices("");
+      renderDomainFilters();
+      renderTerms("");
+      renderQueue();
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        renderSlices(e.target.value);
+        renderTerms(e.target.value);
+      });
+    }
+
+    init().catch(err => {
+      document.getElementById("statsStrip").innerHTML = `<div class="col-span-4 p-4 rounded-lg border border-[var(--error)] text-xs">Failed to load ontology JSON (serve over HTTP or open on GitHub Pages): ${esc(err)}</div>`;
+    });
+  </script>
+</body>
+</html>

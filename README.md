@@ -18,6 +18,15 @@ An interactive architecture explorer and compositional formal verification metho
      - **Stratum 4**: Synthetic `AdversarialSpoke.sol` injection + SHA-256 `ProofKernel` receipt
    - Comparative rationale against unit tests alone, disconnected Python Z3 scripts, and un-sliced monolithic symbolic execution.
 
+3. **[Agentic Ontology Explorer (`ontology.html`)](https://fredluv.github.io/aave-v4-verification-architecture/ontology.html)** ([`ontology/aave-v4-ontology.json`](ontology/aave-v4-ontology.json), [`scripts/query_ontology.py`](scripts/query_ontology.py))
+   - Structured Aave V4 agentic ontology modeling core **Domains**, **Entities**, authority-scored **Business & Verification Terms** with explicit **Naive-Agent Traps**, **Task Context Slices** (token-budgeted subgraphs), and a **Curation Queue**.
+   - Local CLI lookup utility for coding and auditing agents:
+     ```bash
+     python3 scripts/query_ontology.py --list-domains
+     python3 scripts/query_ontology.py "premium"
+     python3 scripts/query_ontology.py --curation-queue
+     ```
+
 ## Local Preview
 
 ```bash
